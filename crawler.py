@@ -16,6 +16,8 @@ class Crawler:
         self.frontier = frontier
         self.corpus = corpus
         self.counter_links_crawled = 0
+        self.counter_domain = defaultdict(int)
+        self.traps = []
 
     def start_crawling(self):
         """
@@ -63,6 +65,16 @@ class Crawler:
         in this method
         """
         parsed = urlparse(url)
+        domain = parsed.netloc + parsed.path
+        
+        # to avoid calendar trap, track the access amounts
+        # the arbitrary and intuitive number here I put 20
+        if self.counter_domain[domain] >= 20:
+            self.traps.append(domain)
+            return False
+        
+        
+        
         if parsed.scheme not in set(["http", "https"]):
             return False
         try:
