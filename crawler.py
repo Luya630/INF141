@@ -1,6 +1,8 @@
 import logging
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+import lxml
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,7 @@ class Crawler:
     def __init__(self, frontier, corpus):
         self.frontier = frontier
         self.corpus = corpus
+        self.counter_links_crawled = 0
 
     def start_crawling(self):
         """
@@ -40,6 +43,17 @@ class Crawler:
         Suggested library: lxml
         """
         outputLinks = []
+        
+        soup = BeautifulSoup(url_data["content"], "lxml") #store input html document into a soup object
+        aTags = soup.find_all("a",href=True) # find every aTag that has an href attribute
+        
+        base = url_data["url"] # get the base url
+        for tag in aTags:
+            relative = tag.attrs["href"]
+            absolute = urljoin(base, relative)
+            outputLinks.append(absolute)
+            self.counter_links_crawled += 1
+                
         return outputLinks
 
     def is_valid(self, url):
